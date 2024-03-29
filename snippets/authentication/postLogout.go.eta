@@ -1,0 +1,9 @@
+package authentication
+
+import (
+	"custom-go/pkg/types"
+)
+
+func PostLogout(hook *types.AuthenticationHookRequest) error {
+	return nil
+}

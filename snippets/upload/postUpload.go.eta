@@ -1,0 +1,11 @@
+package <%= it.profileName %>
+
+import (
+	"custom-go/generated"
+	"custom-go/pkg/types"
+	"custom-go/pkg/plugins"
+)
+
+func PostUpload(request *types.UploadHookRequest, body *plugins.UploadBody[generated.<%= it.upperFirst(it.providerName) %>_<%= it.profileName %>ProfileMeta]) (*types.UploadHookResponse, error) {
+	return nil, nil
+}

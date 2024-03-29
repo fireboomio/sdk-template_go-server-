@@ -1,0 +1,10 @@
+package authentication
+
+import (
+	"custom-go/pkg/plugins"
+	"custom-go/pkg/types"
+)
+
+func RevalidateAuthentication(hook *types.AuthenticationHookRequest) (*plugins.AuthenticationResponse, error) {
+	return nil, nil
+}

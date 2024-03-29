@@ -1,0 +1,11 @@
+package <%= it.packageName %>
+
+import (
+	"custom-go/generated"
+	"custom-go/pkg/types"
+)
+
+func CustomResolve(hook *types.HookRequest, body generated.<%= it.upperFirst(it.operationName) %>Body) (res generated.<%= it.upperFirst(it.operationName) %>Body, err error) {
+	hook.Logger().Info("CustomResolve")
+	return body, nil
+}

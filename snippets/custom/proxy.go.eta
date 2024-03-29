@@ -1,0 +1,20 @@
+package <%= it.packageName %>
+
+import (
+	"custom-go/pkg/types"
+	"custom-go/pkg/plugins"
+	"net/http"
+)
+
+func init() {
+	plugins.RegisterProxyHook(<%= it.name %>, types.OperationType_MUTATION)
+}
+
+func <%= it.name %>(hook *types.HttpTransportHookRequest, body *plugins.HttpTransportBody) (*types.ClientResponse, error) {
+	// do something here ...
+	body.Response = &types.ClientResponse{
+		StatusCode: http.StatusOK,
+	}
+	body.Response.OriginBody = []byte("ok")
+	return body.Response, nil
+}

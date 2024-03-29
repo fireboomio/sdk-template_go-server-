@@ -1,0 +1,11 @@
+package <%= it.profileName %>
+
+import (
+	"custom-go/generated"
+	"custom-go/pkg/types"
+	"custom-go/pkg/plugins"
+)
+
+func PreUpload(request *types.UploadHookRequest, body *plugins.UploadBody[generated.<%= it.upperFirst(it.providerName) %>_<%= it.profileName %>ProfileMeta]) (*types.UploadHookResponse, error) {
+	return &types.UploadHookResponse{FileKey: body.File.Name}, nil
+}

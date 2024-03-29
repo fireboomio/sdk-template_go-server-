@@ -1,0 +1,10 @@
+package global
+
+import (
+	"custom-go/pkg/plugins"
+	"custom-go/pkg/types"
+)
+
+func BeforeOriginRequest(hook *types.HttpTransportHookRequest, body *plugins.HttpTransportBody) (*types.WunderGraphRequest, error) {
+	return body.Request, nil
+}

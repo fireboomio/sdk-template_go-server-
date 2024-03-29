@@ -1,0 +1,10 @@
+package authentication
+
+import (
+	"custom-go/pkg/plugins"
+	"custom-go/pkg/types"
+)
+
+func MutatingPostAuthentication(hook *types.AuthenticationHookRequest) (*plugins.AuthenticationResponse, error) {
+	return &plugins.AuthenticationResponse{User: hook.User, Status: "ok"}, nil
+}
