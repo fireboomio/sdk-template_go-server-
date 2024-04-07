@@ -12,7 +12,7 @@ import (
 {{/each}}
 )
 {{/with}}
-{{#each objectFieldArray}}
+{{#each objectFieldArray}}{{#if (isAbsent onceMap (upperFirst (joinString '_' documentPath)) 1)}}
 {{#if description}}// {{upperFirst (joinString '_' documentPath)}}
 /*  {{description}} */{{/if}}
 type {{upperFirst (joinString '_' documentPath)~}}
@@ -24,10 +24,10 @@ type {{upperFirst (joinString '_' documentPath)~}}
     {{/if}}{{upperFirst (trimPrefix name '_')}} {{#if isArray}}[]{{~/if~}}
 {{~> field_type this=this}} `json:"{{name}}{{#unless required}},omitempty{{/unless}}"`
 {{/each}}
-}{{/if}}
+}{{/if}}{{/if~}}
 {{/each}}
 
-{{#each enumFieldArray}}
+{{#each enumFieldArray}}{{#if (isAbsent onceMap name 1)}}
 type {{upperFirst name}} {{#if valueType}}{{> field_type_simple typeName=valueType}}{{else}}string{{/if}}
 {{#if simpleFieldPointerRequired}}var{{else}}const{{/if}} (
 {{#each values}}
@@ -44,5 +44,5 @@ var {{upperFirst name}}DescMap = map[{{upperFirst name}}]string{
 func (e {{#if simpleFieldPointerRequired}}*{{/if}}{{upperFirst name}}) String() string {
     return {{upperFirst name}}DescMap[{{#if simpleFieldPointerRequired}}*{{/if}}e]
 }
-{{/if}}
+{{/if}}{{/if~}}
 {{/each}}
