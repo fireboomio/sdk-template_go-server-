@@ -5,7 +5,7 @@ import (
 	"custom-go/pkg/types"
 )
 
-func MutatingPreResolve(hook *types.HookRequest, body generated.<%= it.upperFirst(it.operationName) %>Body) (res generated.<%= it.upperFirst(it.operationName) %>Body, err error) {
+func MutatingPreResolve(hook *types.HookRequest, body generated.<%= it.upperFirst(it.operationName) %>Body) (resp generated.<%= it.upperFirst(it.operationName) %>Body, err error) {
 	hook.Logger().Info("MutatingPreResolve")
 	return body, nil
 }
