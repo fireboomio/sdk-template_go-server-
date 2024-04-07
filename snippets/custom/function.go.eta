@@ -28,7 +28,7 @@ type <%= it.name %>_loginRes struct {
 func <%= it.name %>(hook *types.HookRequest, body *types.OperationBody[<%= it.name %>_loginReq, <%= it.name %>_loginRes]) (*types.OperationBody[<%= it.name %>_loginReq, <%= it.name %>_loginRes], error) {
 	if body.Input.Username != "John" || body.Input.Password != "123456" {
 		body.Response = &types.OperationBodyResponse[<%= it.name %>_loginRes]{
-			Errors: []types.GraphQLError{{Message: "username or password wrong"}},
+			Errors: []types.RequestError{{Message: "username or password wrong"}},
 		}
 		return body, nil
 	}
