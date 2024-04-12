@@ -5,9 +5,9 @@
 {{~#equal typeName 'string'}}
     {{~#if (equalAny typeFormat 'date,date-time')}}time.Time
     {{~else}}{{#equal typeFormat 'decimal'}}decimal.Decimal
+    {{~else}}{{#equal typeFormat 'geometry'}}types.Geometry
     {{~else}}{{#equal typeFormat 'byte'}}[]byte
     {{~else}}{{#equal typeFormat 'binary'}}*types.UploadFile
-    {{~else}}{{#equal typeFormat 'geometry'}}*types.Geometry
     {{~else}}string
     {{~/equal}}{{/equal}}{{/equal}}{{/equal}}{{/if~}}
 {{/equal~}}

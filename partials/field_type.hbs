@@ -1,7 +1,7 @@
 {{~#if typeRefObject~}}
     {{#if typeRefObject.isDefinition}}{{#unless typeRefObject.additional}}*{{/unless}}{{/if}}{{~upperFirst (joinString '_' typeRefObject.documentPath)~}}
 {{~else~}}
-    {{~#if simpleFieldPointerRequired}}{{#unless isArray}}{{#unless (equalAny typeFormat 'binary,Bytes')}}*{{/unless}}{{/unless}}{{/if~}}
+    {{~#if simpleFieldPointerRequired}}{{#unless isArray}}{{#unless (equalAny typeFormat 'binary,byte')}}*{{/unless}}{{/unless}}{{/if~}}
     {{~#if typeRefEnum~}}
         {{~upperFirst typeRefEnum.name~}}
     {{~else~}}
