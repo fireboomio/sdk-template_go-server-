@@ -3,9 +3,9 @@
 {{~#equal typeName 'integer'}}int64{{/equal~}}
 {{~#equal typeName 'number'}}float64{{/equal~}}
 {{~#equal typeName 'string'}}
-    {{~#if (equalAny typeFormat 'Date,Time,DateTime,date-time')}}time.Time
-    {{~else}}{{#equal typeFormat 'Decimal'}}decimal.Decimal
-    {{~else}}{{#equal typeFormat 'Bytes'}}[]byte
+    {{~#if (equalAny typeFormat 'date,date-time')}}time.Time
+    {{~else}}{{#equal typeFormat 'decimal'}}decimal.Decimal
+    {{~else}}{{#equal typeFormat 'byte'}}[]byte
     {{~else}}{{#equal typeFormat 'binary'}}*types.UploadFile
     {{~else}}string
     {{~/equal}}{{/equal}}{{/equal}}{{/if~}}
