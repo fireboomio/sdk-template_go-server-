@@ -23,14 +23,14 @@ type Geometry struct {
 	Latitude  float64
 }
 
-func (g *Geometry) DistanceTo(target *Geometry) float64 {
-	if g == nil || target == nil {
-		return 0
-	}
-
+func (g Geometry) DistanceTo(target Geometry) float64 {
 	p := math.Abs(g.Longitude - target.Longitude)
 	q := math.Abs(g.Latitude - target.Latitude)
 	return math.Hypot(p, q)
+}
+
+func (g Geometry) String() string {
+	return fmt.Sprintf("%s%f %f%s", geometryStringPrefix, g.Longitude, g.Latitude, geometryStringSuffix)
 }
 
 func (g Geometry) MarshalJSON() ([]byte, error) {
@@ -53,8 +53,4 @@ func (g *Geometry) UnmarshalJSON(dataBytes []byte) error {
 
 	*g = Geometry{Longitude: cast.ToFloat64(dataArray[0]), Latitude: cast.ToFloat64(dataArray[1])}
 	return nil
-}
-
-func (g *Geometry) String() string {
-	return fmt.Sprintf("%s%f %f%s", geometryStringPrefix, g.Longitude, g.Latitude, geometryStringSuffix)
 }
