@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"github.com/labstack/echo/v4"
-	"io"
 	"net/http"
 	"sync"
 )
@@ -43,10 +42,6 @@ func (r *WunderGraphResponse) WriteHeader(statusCode int) {
 }
 
 type (
-	UploadFile struct {
-		Reader io.Reader
-		Name   string
-	}
 	HealthReportLock struct {
 		HealthReport
 		sync.Mutex
