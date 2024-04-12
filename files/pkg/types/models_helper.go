@@ -19,18 +19,22 @@ const (
 )
 
 type Geometry struct {
-	Longitude float64
-	Latitude  float64
+	longitude float64
+	latitude  float64
+}
+
+func NewGeometry(longitude, latitude float64) Geometry {
+	return Geometry{longitude: longitude, latitude: latitude}
 }
 
 func (g Geometry) DistanceTo(target Geometry) float64 {
-	p := math.Abs(g.Longitude - target.Longitude)
-	q := math.Abs(g.Latitude - target.Latitude)
+	p := math.Abs(g.longitude - target.longitude)
+	q := math.Abs(g.latitude - target.latitude)
 	return math.Hypot(p, q)
 }
 
 func (g Geometry) String() string {
-	return fmt.Sprintf("%s%f %f%s", geometryStringPrefix, g.Longitude, g.Latitude, geometryStringSuffix)
+	return fmt.Sprintf("%s%f %f%s", geometryStringPrefix, g.longitude, g.latitude, geometryStringSuffix)
 }
 
 func (g Geometry) MarshalJSON() ([]byte, error) {
@@ -51,6 +55,6 @@ func (g *Geometry) UnmarshalJSON(dataBytes []byte) error {
 		return fmt.Errorf("expected 2 elements but found [%d]", dataLength)
 	}
 
-	*g = Geometry{Longitude: cast.ToFloat64(dataArray[0]), Latitude: cast.ToFloat64(dataArray[1])}
+	*g = Geometry{longitude: cast.ToFloat64(dataArray[0]), latitude: cast.ToFloat64(dataArray[1])}
 	return nil
 }
