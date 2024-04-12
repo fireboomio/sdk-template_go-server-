@@ -3,11 +3,11 @@ package generated
 {{#with typeFormatArray}}
 import (
 {{#each this}}
-    {{~#equal this 'DateTime'}}
+    {{~#equal this 'date-time'}}
     "time"{{/equal}}
-    {{~#equal this 'binary'}}
-    "custom-go/pkg/types"{{/equal}}
-    {{~#equal this 'Decimal'}}
+    {{~#if (isAlltrue (equalAny this 'binary,geometry') (isAbsent onceMap 'custom-go/pkg/types' 1))}}
+    "custom-go/pkg/types"{{/if}}
+    {{~#equal this 'decimal'}}
     "github.com/shopspring/decimal"{{/equal}}
 {{/each}}
 )
