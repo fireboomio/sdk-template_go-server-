@@ -241,10 +241,13 @@ func ExecuteWithTransaction(client *types.InternalClient, execute func() error) 
 		string(types.TransactionHeader_X_Transaction_Id):       transactionId,
 	})
 	var body []byte
-	if err := execute(); err != nil {
-		body = []byte(fmt.Sprintf(`{"error": "%s"}`, err.Error()))
+	executeErr := execute()
+	if executeErr != nil {
+		body = []byte(fmt.Sprintf(`{"error": "%s"}`, executeErr.Error()))
 	}
 	url := types.PrivateNodeUrl + string(types.InternalEndpoint_internalTransaction)
-	_, err := utils.HttpPost(url, body, client.ExtraHeaders)
-	return err
+	if _, err := utils.HttpPost(url, body, client.ExtraHeaders); err != nil {
+		return err
+	}
+	return executeErr
 }
