@@ -205,9 +205,6 @@ type EngineConfiguration struct {
 	TypeConfigurations       []*TypeConfiguration       `json:"typeConfigurations"`
 }
 
-type ErrorPath struct {
-}
-
 type FetchConfiguration struct {
 	BaseUrl                *ConfigurationVariable    `json:"baseUrl"`
 	Body                   *ConfigurationVariable    `json:"body"`
@@ -544,7 +541,7 @@ type RESTSubscriptionConfiguration struct {
 type RequestError struct {
 	Locations []*Location `json:"locations,omitempty"`
 	Message   string      `json:"message"`
-	Path      *ErrorPath  `json:"path"`
+	Path      []string    `json:"path"`
 }
 
 type RequestHeaders map[string]string
