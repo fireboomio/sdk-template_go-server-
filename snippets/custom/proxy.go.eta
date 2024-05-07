@@ -10,9 +10,9 @@ func init() {
 	plugins.RegisterProxyHook(<%= it.name %>, types.OperationType_MUTATION)
 }
 
-func <%= it.name %>(hook *types.HttpTransportHookRequest, body *plugins.HttpTransportBody) (*types.ClientResponse, error) {
+func <%= it.name %>(hook *types.HttpTransportHookRequest, body *plugins.HttpTransportBody) (*types.WunderGraphResponse, error) {
 	// do something here ...
-	body.Response = &types.ClientResponse{
+	body.Response = &types.WunderGraphResponse{
 		StatusCode: http.StatusOK,
 	}
 	body.Response.OriginBody = []byte("ok")
