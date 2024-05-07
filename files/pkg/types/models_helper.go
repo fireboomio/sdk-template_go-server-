@@ -58,3 +58,17 @@ func (g *Geometry) UnmarshalJSON(dataBytes []byte) error {
 	*g = Geometry{longitude: cast.ToFloat64(dataArray[0]), latitude: cast.ToFloat64(dataArray[1])}
 	return nil
 }
+
+func GetValueFromCustomClaims[T any](claims User_customClaims, key string) (t T, ok bool) {
+	if len(claims) == 0 {
+		return
+	}
+
+	v, ok := claims[key]
+	if !ok {
+		return
+	}
+
+	t, ok = v.(T)
+	return
+}
