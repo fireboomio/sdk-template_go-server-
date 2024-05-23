@@ -58,7 +58,7 @@ func internalRequest[I any](client *types.InternalClient, path string, options t
 		if jsonData, err = json.Marshal(types.OperationHookPayload{Input: options.Input, Wg: baseBodyWg}); err != nil {
 			return
 		}
-		bodyBuffer, contentType = bytes.NewBuffer(jsonData), echo.MIMEApplicationJSON
+		bodyBuffer, contentType = bytes.NewBuffer(utils.ClearZeroTime(jsonData)), echo.MIMEApplicationJSON
 	}
 
 	req, err := http.NewRequest(http.MethodPost, url, bodyBuffer)
