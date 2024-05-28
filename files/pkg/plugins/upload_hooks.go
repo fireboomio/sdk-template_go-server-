@@ -2,13 +2,10 @@ package plugins
 
 import (
 	"custom-go/pkg/types"
-	"custom-go/pkg/utils"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"strings"
 )
-
-type UploadHooks = map[string]UploadHooksProfile
 
 type UploadBody[M any] struct {
 	File  types.HookFile `json:"file"`
@@ -19,81 +16,32 @@ type UploadBody[M any] struct {
 	} `json:"error"`
 }
 
-type UploadFunction func(request *types.UploadHookRequest, body *UploadBody[any]) (*types.UploadHookResponse, error)
-
-type UploadHooksProfile struct {
-	PreUpload  UploadFunction
-	PostUpload UploadFunction
-}
-
-func ConvertUploadFunc[M any](oldFunc func(*types.UploadHookRequest, *UploadBody[M]) (*types.UploadHookResponse, error)) UploadFunction {
-	return func(hook *types.UploadHookRequest, body *UploadBody[any]) (res *types.UploadHookResponse, err error) {
-		// 将传入的 OperationBody 转换为需要的类型
-		var input = utils.ConvertType[UploadBody[any], UploadBody[M]](body)
-		// 调用旧函数获取结果
-		return oldFunc(hook, input)
-	}
-}
-
-func RegisterUploadsHooks(e *echo.Echo, uploadHooksMap map[string]UploadHooks) {
-	for providerName, provider := range uploadHooksMap {
-		for profileName, profile := range provider {
-			if profile.PreUpload != nil {
-				preUpload(e, providerName, profileName, profile.PreUpload)
-			}
-			if profile.PostUpload != nil {
-				postUpload(e, providerName, profileName, profile.PostUpload)
-			}
-		}
-	}
-}
-
-func preUpload(e *echo.Echo, providerName, profileName string, handler UploadFunction) {
-	apiPath := strings.ReplaceAll(string(types.Endpoint_preUpload), "{provider}", providerName)
-	apiPath = strings.ReplaceAll(apiPath, "{profile}", profileName)
-	e.Logger.Debugf(`Registered uploadHook [%s]`, apiPath)
-	e.POST(apiPath, func(c echo.Context) error {
-		pur := c.(*types.UploadHookRequest)
-		var param UploadBody[any]
-		err := c.Bind(&param)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error": err.Error(),
-			})
-		}
-
-		result, err := handler(pur, &param)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error": err.Error(),
-			})
-		}
-
-		return c.JSON(http.StatusOK, result)
+func RegisterUploadHook[M any](provider, profile string, hook types.UploadHook, hookFunc func(*types.UploadHookRequest, *UploadBody[M]) (*types.UploadHookResponse, error)) {
+	types.AddEchoRouterFunc(func(e *echo.Echo) {
+		apiPath := fmt.Sprintf("/upload/%s/%s/%s", provider, profile, hook)
+		e.Logger.Debugf(`Registered uploadHook [%s]`, apiPath)
+		e.POST(apiPath, buildUploadHook(hookFunc))
 	})
 }
 
-func postUpload(e *echo.Echo, providerName, profileName string, handler UploadFunction) {
-	apiPath := strings.ReplaceAll(string(types.Endpoint_postUpload), "{provider}", providerName)
-	apiPath = strings.ReplaceAll(apiPath, "{profile}", profileName)
-	e.Logger.Debugf(`Registered uploadHook [%s]`, apiPath)
-	e.POST(apiPath, func(c echo.Context) error {
+func buildUploadHook[M any](hookFunc func(request *types.UploadHookRequest, body *UploadBody[M]) (*types.UploadHookResponse, error)) echo.HandlerFunc {
+	return func(c echo.Context) (err error) {
 		pur := c.(*types.UploadHookRequest)
-		var param UploadBody[any]
-		err := c.Bind(&param)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error": err.Error(),
-			})
+		var (
+			input    UploadBody[M]
+			response types.UploadHookResponse
+		)
+		if err = c.Bind(&input); err != nil {
+			response.Error = err.Error()
+			return c.JSON(http.StatusInternalServerError, response)
 		}
 
-		result, err := handler(pur, &param)
+		output, err := hookFunc(pur, &input)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error": err.Error(),
-			})
+			response.Error = err.Error()
+			return c.JSON(http.StatusInternalServerError, response)
 		}
-
-		return c.JSON(http.StatusOK, result)
-	})
+		response = *output
+		return c.JSON(http.StatusOK, response)
+	}
 }

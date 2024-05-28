@@ -158,16 +158,6 @@ type (
 	}
 )
 
-func FetchOperations(logger echo.Logger, operationType types.OperationType, printUrlRequired bool) []string {
-	paths := operations[operationType]
-	if printUrlRequired {
-		for _, path := range paths {
-			logger.Debugf(`Built internalRequest (%s)`, fetchInternalRequestUrl(path))
-		}
-	}
-	return paths
-}
-
 func fetchInternalRequestUrl(path string) string {
 	return types.PrivateNodeUrl + strings.ReplaceAll(string(types.InternalEndpoint_internalRequest), "{path}", path)
 }

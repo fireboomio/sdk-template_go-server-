@@ -16,9 +16,5 @@ type (
 	HooksConfiguration struct {
 		Global         GlobalConfiguration
 		Authentication AuthenticationConfiguration
-		Queries        types.OperationHooks
-		Mutations      types.OperationHooks
-		Subscriptions  types.OperationHooks
-		Uploads        map[string]UploadHooks
 	}
 )

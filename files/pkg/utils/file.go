@@ -77,12 +77,6 @@ func ClearZeroTime(data []byte) []byte {
 	return []byte(dataStr)
 }
 
-func ConvertType[S, T any](s *S) (t *T) {
-	convertBytes, _ := json.Marshal(s)
-	_ = json.Unmarshal(ClearZeroTime(convertBytes), &t)
-	return
-}
-
 func GetCallerName(prefix string) string {
 	if !strings.HasSuffix(prefix, "/") {
 		prefix += "/"

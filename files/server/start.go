@@ -48,25 +48,6 @@ func configureWunderGraphServer() *echo.Echo {
 
 	plugins.RegisterGlobalHooks(e, plugins.WdgHooksAndServerConfig.Hooks.Global)
 	plugins.RegisterAuthHooks(e, plugins.WdgHooksAndServerConfig.Hooks.Authentication)
-	plugins.RegisterUploadsHooks(e, plugins.WdgHooksAndServerConfig.Hooks.Uploads)
-
-	internalQueries := plugins.FetchOperations(e.Logger, types.OperationType_QUERY, true)
-	if queryLen := len(internalQueries); queryLen > 0 {
-		plugins.RegisterOperationsHooks(e, internalQueries, plugins.WdgHooksAndServerConfig.Hooks.Queries)
-		e.Logger.Debugf(`Registered (%d) query operations`, queryLen)
-	}
-
-	internalMutations := plugins.FetchOperations(e.Logger, types.OperationType_MUTATION, true)
-	if mutationLen := len(internalMutations); mutationLen > 0 {
-		plugins.RegisterOperationsHooks(e, internalMutations, plugins.WdgHooksAndServerConfig.Hooks.Mutations)
-		e.Logger.Debugf(`Registered (%d) mutation operations`, mutationLen)
-	}
-
-	subscriptionOperations := plugins.FetchOperations(e.Logger, types.OperationType_SUBSCRIPTION, false)
-	if subscriptionLen := len(subscriptionOperations); subscriptionLen > 0 {
-		plugins.RegisterOperationsHooks(e, subscriptionOperations, plugins.WdgHooksAndServerConfig.Hooks.Subscriptions)
-		e.Logger.Debugf(`Registered (%d) subscription operations`, subscriptionLen)
-	}
 
 	registerOnce := &sync.Once{}
 	e.Use(middleware.Recover(), func(next echo.HandlerFunc) echo.HandlerFunc {
