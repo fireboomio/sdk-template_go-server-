@@ -18,7 +18,7 @@ func RegisterProxyHook(hookFunc httpProxyHookFunction, operationType ...types.Op
 	apiPath := strings.ReplaceAll(string(types.Endpoint_proxy), "{path}", callerName)
 
 	types.AddEchoRouterFunc(func(e *echo.Echo) {
-		e.Logger.Debugf(`Registered hookFunction [%s]`, apiPath)
+		e.Logger.Debugf(`Registered proxyFunction [%s]`, apiPath)
 		e.POST(apiPath, buildProxyFunc(hookFunc))
 	})
 
