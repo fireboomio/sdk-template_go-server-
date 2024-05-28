@@ -13,16 +13,16 @@ import (
 const maximumRecursionLimit = 16
 
 func ConvertBodyFunc[I, O any](oldFunc func(*types.HookRequest, *types.OperationBody[I, O]) (*types.OperationBody[I, O], error)) types.OperationHookFunction {
-	return func(hook *types.HookRequest, body *types.OperationBody[any, any]) (res *types.OperationBody[any, any], err error) {
+	return func(hook *types.HookRequest, body *types.OperationBody[types.Json, types.Json]) (res *types.OperationBody[types.Json, types.Json], err error) {
 		// 将传入的 OperationBody 转换为需要的类型
-		var input = utils.ConvertType[types.OperationBody[any, any], types.OperationBody[I, O]](body)
+		var input = utils.ConvertType[types.OperationBody[types.Json, types.Json], types.OperationBody[I, O]](body)
 		// 调用旧函数获取结果
 		oldRes, err := oldFunc(hook, input)
 		if err != nil {
 			return res, err
 		}
 
-		res = utils.ConvertType[types.OperationBody[I, O], types.OperationBody[any, any]](oldRes)
+		res = utils.ConvertType[types.OperationBody[I, O], types.OperationBody[types.Json, types.Json]](oldRes)
 		return res, nil
 	}
 }
@@ -36,8 +36,8 @@ func RegisterOperationsHooks(e *echo.Echo, operations []string, operationHooksMa
 	}
 }
 
-func MakeDataAnyMap(data any) map[string]any {
-	return map[string]any{"data": data}
+func MakeDataAnyMap(data any) types.Json {
+	return types.Json{"data": data}
 }
 
 func registerOperationHooks(e *echo.Echo, operationPath string, operationHooksMap types.OperationHooks) {
@@ -99,24 +99,24 @@ func requestContext(c echo.Context) (result *types.HookRequest, err error) {
 	return result, nil
 }
 
-func mockResolve(in, out *types.OperationBody[any, any]) {
+func mockResolve(in, out *types.OperationBody[types.Json, types.Json]) {
 	in.Response = out.Response
 	in.SetClientRequestHeaders = out.SetClientRequestHeaders
 }
-func preResolve(in, out *types.OperationBody[any, any]) {
+func preResolve(in, out *types.OperationBody[types.Json, types.Json]) {
 	in.SetClientRequestHeaders = out.SetClientRequestHeaders
 }
 
-func postResolve(in, out *types.OperationBody[any, any]) {
+func postResolve(in, out *types.OperationBody[types.Json, types.Json]) {
 	in.SetClientRequestHeaders = out.SetClientRequestHeaders
 }
 
-func mutatingPreResolve(in, out *types.OperationBody[any, any]) {
+func mutatingPreResolve(in, out *types.OperationBody[types.Json, types.Json]) {
 	in.Input = out.Input
 	in.SetClientRequestHeaders = out.SetClientRequestHeaders
 }
 
-func mutatingPostResolve(in, out *types.OperationBody[any, any]) {
+func mutatingPostResolve(in, out *types.OperationBody[types.Json, types.Json]) {
 	in.Response = out.Response
 	in.SetClientRequestHeaders = out.SetClientRequestHeaders
 	if in.Response != nil && in.Response.DataAny != nil {
@@ -125,17 +125,17 @@ func mutatingPostResolve(in, out *types.OperationBody[any, any]) {
 	}
 }
 
-func customResolve(in, out *types.OperationBody[any, any]) {
+func customResolve(in, out *types.OperationBody[types.Json, types.Json]) {
 	in.Response = out.Response
 	in.SetClientRequestHeaders = out.SetClientRequestHeaders
 }
 
-func buildOperationHook(operationName string, hookName types.MiddlewareHook, hookFunction types.OperationHookFunction, action func(in, out *types.OperationBody[any, any])) echo.HandlerFunc {
+func buildOperationHook(operationName string, hookName types.MiddlewareHook, hookFunction types.OperationHookFunction, action func(in, out *types.OperationBody[types.Json, types.Json])) echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		c.Response().WriteHeader(http.StatusOK)
 
-		var in types.OperationBody[any, any]
+		var in types.OperationBody[types.Json, types.Json]
 		err = c.Bind(&in)
 		if err != nil {
 			return

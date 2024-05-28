@@ -26,7 +26,7 @@ func RegisterFunction[I, O any](hookFunc func(*types.HookRequest, *types.Operati
 
 	types.AddEchoRouterFunc(func(e *echo.Echo) {
 		e.Logger.Debugf(`Registered hookFunction [%s]`, apiPath)
-		e.POST(apiPath, buildOperationHook(callerName, types.MiddlewareHook(types.HookParent_function), ConvertBodyFunc[I, O](hookFunc), func(in, out *types.OperationBody[any, any]) {
+		e.POST(apiPath, buildOperationHook(callerName, types.MiddlewareHook(types.HookParent_function), ConvertBodyFunc[I, O](hookFunc), func(in, out *types.OperationBody[types.Json, types.Json]) {
 			in.Response = out.Response
 		}))
 	})
