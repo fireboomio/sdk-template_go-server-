@@ -45,7 +45,8 @@ func (g *Geometry) UnmarshalJSON(dataBytes []byte) error {
 	if len(dataBytes) == 0 {
 		return nil
 	}
-	dataString := strings.TrimSuffix(string(dataBytes), geometryStringSuffix)
+	dataString := strings.Trim(string(dataBytes), `""`)
+	dataString = strings.TrimSuffix(dataString, geometryStringSuffix)
 	dataString, ok := strings.CutPrefix(dataString, geometryStringPrefix)
 	if !ok {
 		return fmt.Errorf("not supported geometry data [%s]", string(dataBytes))
