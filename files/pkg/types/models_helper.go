@@ -38,6 +38,9 @@ func (g Geometry) String() string {
 }
 
 func (g Geometry) MarshalJSON() ([]byte, error) {
+	if g.longitude == 0 && g.latitude == 0 {
+		return nil, nil
+	}
 	return []byte(`"` + g.String() + `"`), nil
 }
 
