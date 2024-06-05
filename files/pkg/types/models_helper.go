@@ -38,7 +38,7 @@ func (g Geometry) String() string {
 }
 
 func (g Geometry) MarshalJSON() ([]byte, error) {
-	return []byte(g.String()), nil
+	return []byte(`"` + g.String() + `"`), nil
 }
 
 func (g *Geometry) UnmarshalJSON(dataBytes []byte) error {
@@ -46,6 +46,9 @@ func (g *Geometry) UnmarshalJSON(dataBytes []byte) error {
 		return nil
 	}
 	dataString := strings.Trim(string(dataBytes), `""`)
+	if len(dataString) == 0 {
+		return nil
+	}
 	dataString = strings.TrimSuffix(dataString, geometryStringSuffix)
 	dataString, ok := strings.CutPrefix(dataString, geometryStringPrefix)
 	if !ok {
