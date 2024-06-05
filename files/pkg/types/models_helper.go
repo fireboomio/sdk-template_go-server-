@@ -37,13 +37,12 @@ func (g Geometry) String() string {
 	return fmt.Sprintf("%s%f %f%s", geometryStringPrefix, g.longitude, g.latitude, geometryStringSuffix)
 }
 
-func (g Geometry) MarshalJSON() ([]byte, error) {
-	if g.longitude == 0 && g.latitude == 0 {
+func (g *Geometry) MarshalJSON() ([]byte, error) {
+	if g == nil {
 		return nil, nil
 	}
 	return []byte(`"` + g.String() + `"`), nil
 }
-
 func (g *Geometry) UnmarshalJSON(dataBytes []byte) error {
 	if len(dataBytes) == 0 {
 		return nil
