@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 )
 
 type fileCache struct {
@@ -56,25 +55,6 @@ func ReadStructAndCacheFile(path string, result interface{}) error {
 	}
 
 	return json.Unmarshal(bytesData, &result)
-}
-
-var zeroTimeStr = `":"` + time.Time{}.Format(time.RFC3339) + `"`
-
-func ClearZeroTime(data []byte) []byte {
-	dataStr := string(data)
-	for {
-		index := strings.Index(dataStr, zeroTimeStr)
-		if index == -1 {
-			break
-		}
-		startIndex := strings.LastIndex(dataStr[:index], `"`)
-		endIndex := index + len(zeroTimeStr)
-		if dataStr[startIndex-1] == ',' {
-			startIndex--
-		}
-		dataStr = dataStr[:startIndex] + dataStr[endIndex:]
-	}
-	return []byte(dataStr)
 }
 
 func GetCallerName(prefix string) string {
