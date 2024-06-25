@@ -134,6 +134,10 @@ type zeroValues []*zeroValue
 
 func (v *zeroValues) set(output []byte) []byte {
 	for _, item := range *v {
+		_, typeInOut, _, _ := jsonparser.Get(output, item.path...)
+		if typeInOut != jsonparser.NotExist {
+			continue
+		}
 		itemValue := item.value
 		if item.valueType == jsonparser.String {
 			itemValue = []byte(strconv.Quote(string(item.value)))
