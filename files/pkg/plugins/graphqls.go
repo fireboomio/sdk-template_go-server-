@@ -172,19 +172,29 @@ func RegisterGraphql(schema *graphql.Schema) {
 			e.Logger.Errorf("get embed introspect.json failed, err: %v", err.Error())
 			return
 		}
-		headers := map[string]string{echo.HeaderContentType: echo.MIMEApplicationJSON}
-		respBody, err := utils.HttpPost(fmt.Sprintf("http://%s%s", types.ServerListenAddress, routeUrl), introspectBytes, headers, 5)
-		if err != nil {
-			e.Logger.Errorf("post req failed, uri: %s, err: %v", routeUrl, err.Error())
+		var introspectBody graphqlBody
+		if err = json.Unmarshal(introspectBytes, &introspectBody); err != nil {
+			e.Logger.Errorf("json unmarshal introspectBytes failed, err: %v", err.Error())
 			return
 		}
-
-		if errorMsg := gjson.GetBytes(respBody, graphqlResultErrorsPath); errorMsg.Exists() {
+		graphqlResult := graphql.Do(graphql.Params{
+			Schema:         *schema,
+			OperationName:  introspectBody.OperationName,
+			RequestString:  introspectBody.Query,
+			VariableValues: introspectBody.Variables,
+			Context:        context.Background(),
+		})
+		graphqlResultBytes, err := json.Marshal(graphqlResult)
+		if err != nil {
+			e.Logger.Errorf("json marshal graphqlResult failed, err: %v", err.Error())
+			return
+		}
+		if errorMsg := gjson.GetBytes(graphqlResultBytes, graphqlResultErrorsPath); errorMsg.Exists() {
 			e.Logger.Error(errorMsg.String())
 			return
 		}
 
-		graphqlData := gjson.GetBytes(respBody, graphqlResultDataPath).String()
+		graphqlData := gjson.GetBytes(graphqlResultBytes, graphqlResultDataPath).String()
 		writeFileRequired := true
 		jsonFilepath := filepath.Join(string(types.HookParent_customize), callerName) + jsonExtension
 		if jsonBytes, _ := os.ReadFile(jsonFilepath); len(jsonBytes) > 0 {
