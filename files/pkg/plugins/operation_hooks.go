@@ -86,7 +86,6 @@ func buildOperationHook[I, O any](operationPath string, hook types.MiddlewareHoo
 	resolve func(hook *types.HookRequest, body *types.OperationBody[I, O]) (*types.OperationBody[I, O], error)) echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-		c.Response().WriteHeader(http.StatusOK)
 
 		bodyBytes, err := io.ReadAll(c.Request().Body)
 		if err != nil {
