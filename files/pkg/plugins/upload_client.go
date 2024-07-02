@@ -17,11 +17,12 @@ type (
 	UploadProfile   string
 	UploadMetadata  interface{}
 	UploadParameter struct {
-		Headers   types.RequestHeaders
-		Directory string
-		Profile   UploadProfile
-		Metadata  UploadMetadata
-		Files     []*types.UploadFile
+		KeepOriginName bool
+		Headers        types.RequestHeaders
+		Directory      string
+		Profile        UploadProfile
+		Metadata       UploadMetadata
+		Files          []*types.UploadFile
 	}
 	UploadClient types.S3UploadConfiguration
 )
@@ -76,12 +77,15 @@ func (u *UploadClient) Upload(parameter *UploadParameter) (uploadResp types.Uplo
 	}
 
 	uploadPath := types.PrivateNodeUrl + strings.ReplaceAll(string(types.InternalEndpoint_s3upload), "{provider}", u.Name)
-	if len(parameter.Directory) > 0 {
-		uploadPath += "?directory=" + parameter.Directory
-	}
 	req, err := http.NewRequest("POST", uploadPath, body)
 	if err != nil {
 		return
+	}
+	if len(parameter.Directory) > 0 {
+		req.URL.Query().Add("directory", parameter.Directory)
+	}
+	if parameter.KeepOriginName {
+		req.URL.Query().Add("keepOriginName", "1")
 	}
 
 	req.Header.Add("Content-Type", contentType)
