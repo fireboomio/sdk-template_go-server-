@@ -17,6 +17,7 @@ type (
 	UploadProfile   string
 	UploadMetadata  interface{}
 	UploadParameter struct {
+		Headers   types.RequestHeaders
 		Directory string
 		Profile   UploadProfile
 		Metadata  UploadMetadata
@@ -90,6 +91,11 @@ func (u *UploadClient) Upload(parameter *UploadParameter) (uploadResp types.Uplo
 	if parameter.Metadata != nil {
 		metadataBytes, _ := json.Marshal(parameter.Metadata)
 		req.Header.Add(string(types.InternalHeader_X_Metadata), string(metadataBytes))
+	}
+	for k, v := range parameter.Headers {
+		if req.Header.Get(k) == "" {
+			req.Header.Set(k, v)
+		}
 	}
 
 	resp, err := uploadHttpClient.Do(req)
