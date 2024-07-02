@@ -77,15 +77,19 @@ func (u *UploadClient) Upload(parameter *UploadParameter) (uploadResp types.Uplo
 	}
 
 	uploadPath := types.PrivateNodeUrl + strings.ReplaceAll(string(types.InternalEndpoint_s3upload), "{provider}", u.Name)
+	var queries []string
+	if len(parameter.Directory) > 0 {
+		queries = append(queries, fmt.Sprintf("directory=%s", parameter.Directory))
+	}
+	if parameter.KeepOriginName {
+		queries = append(queries, "keepOriginName")
+	}
+	if len(queries) > 0 {
+		uploadPath += "?" + strings.Join(queries, "&")
+	}
 	req, err := http.NewRequest("POST", uploadPath, body)
 	if err != nil {
 		return
-	}
-	if len(parameter.Directory) > 0 {
-		req.URL.Query().Add("directory", parameter.Directory)
-	}
-	if parameter.KeepOriginName {
-		req.URL.Query().Add("keepOriginName", "1")
 	}
 
 	req.Header.Add("Content-Type", contentType)
