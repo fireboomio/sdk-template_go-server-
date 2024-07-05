@@ -97,6 +97,15 @@ func GetCallerName(prefix string) string {
 
 var htmlBytesMap = make(map[string][]byte)
 
+var EmptyRootQuery = graphql.NewObject(graphql.ObjectConfig{Name: "Query", Fields: graphql.Fields{
+	"_empty": &graphql.Field{
+		Type: graphql.String,
+		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+			return nil, nil
+		},
+	},
+}})
+
 func RegisterGraphql(schema *graphql.Schema) {
 	// eg. customize/test
 	callerName := GetCallerName(string(types.HookParent_customize))
