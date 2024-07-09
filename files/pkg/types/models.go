@@ -43,15 +43,9 @@ type BaseRequestBodyWg struct {
 }
 
 type ClaimConfig struct {
-	ClaimType              ClaimType               `json:"claimType"`
-	Custom                 *CustomClaim            `json:"custom"`
-	RemoveIfNoneMatch      *ClaimRemoveIfNoneMatch `json:"removeIfNoneMatch"`
-	VariablePathComponents []string                `json:"variablePathComponents"`
-}
-
-type ClaimRemoveIfNoneMatch struct {
-	Name string                     `json:"name"`
-	Type ClaimRemoveIfNoneMatchType `json:"type"`
+	ClaimType              ClaimType    `json:"claimType"`
+	Custom                 *CustomClaim `json:"custom"`
+	VariablePathComponents []string     `json:"variablePathComponents"`
 }
 
 type ConfigurationVariable struct {
@@ -786,13 +780,6 @@ const (
 	AuthProviderKind_AuthProviderGithub AuthProviderKind = 0
 	AuthProviderKind_AuthProviderOIDC   AuthProviderKind = 1
 	AuthProviderKind_AuthProviderAuth0  AuthProviderKind = 2
-)
-
-type ClaimRemoveIfNoneMatchType int64
-
-const (
-	ClaimRemoveIfNoneMatchType_Header      ClaimRemoveIfNoneMatchType = 0
-	ClaimRemoveIfNoneMatchType_Environment ClaimRemoveIfNoneMatchType = 1
 )
 
 type ClaimType int64
