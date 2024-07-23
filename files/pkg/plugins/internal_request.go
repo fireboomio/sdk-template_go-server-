@@ -225,11 +225,17 @@ func (m *Subscriber[I, O]) Subscribe(input I, client *types.InternalClient) (dat
 }
 
 func ExecuteWithTransaction(client *types.InternalClient, execute func() error) error {
-	transactionId := uuid.New().String()
-	client.WithHeaders(types.RequestHeaders{
-		string(types.TransactionHeader_X_Transaction_Manually): "true",
-		string(types.TransactionHeader_X_Transaction_Id):       transactionId,
-	})
+	if client.ExtraHeaders.Get(string(types.TransactionHeader_X_Transaction_Id)) == "" {
+		transactionId := uuid.New().String()
+		client.WithHeaders(types.RequestHeaders{
+			string(types.TransactionHeader_X_Transaction_Manually): "true",
+			string(types.TransactionHeader_X_Transaction_Id):       transactionId,
+		})
+	} else {
+		client.WithHeaders(types.RequestHeaders{
+			string(types.TransactionHeader_X_Transaction_Manually): "true",
+		})
+	}
 	var body []byte
 	executeErr := execute()
 	if executeErr != nil {
