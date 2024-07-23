@@ -76,40 +76,42 @@ func RegisterFunction[I, O any](hookFunc func(*types.HookRequest, *types.Operati
 }
 
 func BuildSchema(schema *jsonschema.Schema) (schemaStr string) {
+	defs := make(openapi3.Schemas)
+	for name, internalSchema := range schema.Definitions {
+		defs[name] = parseJsonschemaToSwaggerSchema(internalSchema)
+	}
 	var schemaRef *openapi3.SchemaRef
 	if schema.Ref != "" {
-		defs := make(openapi3.Schemas)
-		for name, internalSchema := range schema.Definitions {
-			defs[name] = parseJsonschemaToSwaggerSchema(internalSchema)
-		}
 		refName := strings.TrimPrefix(schema.Ref, schemaRefPrefix)
 		schemaRef = defs[refName]
 		schemaRef.Value.Title = refName
 		delete(defs, refName)
-		defer func() { schemaStr, _ = sjson.Set(schemaStr, definitionRefProperty, defs) }()
 	} else {
 		schemaRef = parseJsonschemaToSwaggerSchema(schema)
 	}
 
 	bytes, _ := json.Marshal(schemaRef)
 	schemaStr = string(bytes)
+	if len(defs) > 0 {
+		schemaStr, _ = sjson.Set(schemaStr, definitionRefProperty, defs)
+	}
 	return
 }
 
 func FetchFilledSchema(schema *jsonschema.Schema) (schemaRef *openapi3.SchemaRef) {
+	defs := make(openapi3.Schemas)
+	for name, internalSchema := range schema.Definitions {
+		defs[name] = parseJsonschemaToSwaggerSchema(internalSchema)
+	}
 	if schema.Ref != "" {
-		defs := make(openapi3.Schemas)
-		for name, internalSchema := range schema.Definitions {
-			defs[name] = parseJsonschemaToSwaggerSchema(internalSchema)
-		}
 		refName := strings.TrimPrefix(schema.Ref, schemaRefPrefix)
 		schemaRef = defs[refName]
 		schemaRef.Value.Title = refName
 		delete(defs, refName)
-		fillSchemaRef(schemaRef, defs)
 	} else {
 		schemaRef = parseJsonschemaToSwaggerSchema(schema)
 	}
+	fillSchemaRef(schemaRef, defs)
 	return
 }
 
@@ -169,6 +171,9 @@ func parseJsonschemaToSwaggerSchema(schema *jsonschema.Schema) (result *openapi3
 	}
 	for _, item := range schema.AllOf {
 		result.Value.AllOf = append(result.Value.AllOf, parseJsonschemaToSwaggerSchema(item))
+	}
+	for _, item := range schema.PatternProperties {
+		result.Value.AdditionalProperties.Schema = parseJsonschemaToSwaggerSchema(item)
 	}
 
 	if properties := schema.Properties; properties != nil {
