@@ -5,7 +5,6 @@ import (
 	"context"
 	"custom-go/pkg/embeds"
 	"custom-go/pkg/types"
-	"custom-go/pkg/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/graphql-go/graphql/language/ast"
@@ -18,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 
@@ -140,8 +140,7 @@ func RegisterGraphql(schema *graphql.Schema) {
 
 		e.POST(routeUrl, func(c echo.Context) error {
 			var body graphqlBody
-			err := utils.CopyAndBindRequestBody(c.Request(), &body)
-			if err != nil {
+			if err := c.Bind(&body); err != nil {
 				return buildEchoGraphqlError(c, err)
 			}
 
@@ -532,10 +531,12 @@ func writeSafe(err error, writer io.Writer, data []byte) error {
 	return err
 }
 
-func BuildStructScalar[T any](name string) *graphql.Scalar {
+func BuildStructScalar[T any]() *graphql.Scalar {
+	var t T
+	structName := reflect.TypeOf(t).Name()
 	return graphql.NewScalar(graphql.ScalarConfig{
-		Name:        name,
-		Description: fmt.Sprintf("The `%s` scalar type represents %s.", name, name),
+		Name:        structName,
+		Description: fmt.Sprintf("The `%s` scalar type represents %s.", structName, structName),
 		Serialize: func(value interface{}) interface{} {
 			if v, ok := value.(*T); ok {
 				if v == nil {
