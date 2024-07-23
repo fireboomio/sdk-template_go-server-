@@ -75,43 +75,49 @@ func RegisterFunction[I, O any](hookFunc func(*types.HookRequest, *types.Operati
 	})
 }
 
-func BuildSchema(schema *jsonschema.Schema) string {
-	defs := make(openapi3.Schemas)
-	for name, internalSchema := range schema.Definitions {
-		defs[name] = parseJsonschemaToSwaggerSchema(internalSchema)
+func BuildSchema(schema *jsonschema.Schema) (schemaStr string) {
+	var schemaRef *openapi3.SchemaRef
+	if schema.Ref != "" {
+		defs := make(openapi3.Schemas)
+		for name, internalSchema := range schema.Definitions {
+			defs[name] = parseJsonschemaToSwaggerSchema(internalSchema)
+		}
+		refName := strings.TrimPrefix(schema.Ref, schemaRefPrefix)
+		schemaRef = defs[refName]
+		schemaRef.Value.Title = refName
+		delete(defs, refName)
+		defer func() { schemaStr, _ = sjson.Set(schemaStr, definitionRefProperty, defs) }()
+	} else {
+		schemaRef = parseJsonschemaToSwaggerSchema(schema)
 	}
-
-	refStr := strings.TrimPrefix(schema.Ref, "#/$defs/")
-	schemaRef := defs[refStr]
-	delete(defs, refStr)
 
 	bytes, _ := json.Marshal(schemaRef)
-
-	res := string(bytes)
-
-	if len(defs) == 0 {
-		return res
-	}
-	res, _ = sjson.Set(res, definitionRefProperty, defs)
-	return res
+	schemaStr = string(bytes)
+	return
 }
 
-func FetchSimpleSchema(schema *jsonschema.Schema) (schemaRef *openapi3.SchemaRef) {
-	defs := make(openapi3.Schemas)
-	for name, internalSchema := range schema.Definitions {
-		defs[name] = parseJsonschemaToSwaggerSchema(internalSchema)
+func FetchFilledSchema(schema *jsonschema.Schema) (schemaRef *openapi3.SchemaRef) {
+	if schema.Ref != "" {
+		defs := make(openapi3.Schemas)
+		for name, internalSchema := range schema.Definitions {
+			defs[name] = parseJsonschemaToSwaggerSchema(internalSchema)
+		}
+		refName := strings.TrimPrefix(schema.Ref, schemaRefPrefix)
+		schemaRef = defs[refName]
+		schemaRef.Value.Title = refName
+		delete(defs, refName)
+		fillSchemaRef(schemaRef, defs)
+	} else {
+		schemaRef = parseJsonschemaToSwaggerSchema(schema)
 	}
-
-	refStr := strings.TrimPrefix(schema.Ref, "#/$defs/")
-	schemaRef = defs[refStr]
-	delete(defs, refStr)
-	fillSchemaRef(schemaRef, defs)
 	return
 }
 
 func fillSchemaRef(schemaRef *openapi3.SchemaRef, definitions openapi3.Schemas) {
 	if schemaRef.Ref != "" {
-		schemaRef.Value = definitions[strings.TrimPrefix(schemaRef.Ref, "#/$defs/")].Value
+		refName := strings.TrimPrefix(schemaRef.Ref, swaggerRefPrefix)
+		schemaRef.Value = definitions[refName].Value
+		schemaRef.Value.Title = refName
 	}
 
 	for _, v := range schemaRef.Value.AllOf {
@@ -125,6 +131,9 @@ func fillSchemaRef(schemaRef *openapi3.SchemaRef, definitions openapi3.Schemas) 
 	}
 	for _, v := range schemaRef.Value.Properties {
 		fillSchemaRef(v, definitions)
+	}
+	if schemaRef.Value.Items != nil {
+		fillSchemaRef(schemaRef.Value.Items, definitions)
 	}
 }
 

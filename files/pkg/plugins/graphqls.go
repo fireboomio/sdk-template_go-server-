@@ -7,7 +7,8 @@ import (
 	"custom-go/pkg/types"
 	"encoding/json"
 	"fmt"
-	"github.com/graphql-go/graphql/language/ast"
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/invopop/jsonschema"
 	"github.com/r3labs/sse/v2"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -17,7 +18,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strings"
 
@@ -531,46 +531,53 @@ func writeSafe(err error, writer io.Writer, data []byte) error {
 	return err
 }
 
-func BuildStructScalar[T any]() *graphql.Scalar {
+func BuildGraphqlInput[T any]() graphql.FieldConfigArgument {
 	var t T
-	structName := reflect.TypeOf(t).Name()
-	return graphql.NewScalar(graphql.ScalarConfig{
-		Name:        structName,
-		Description: fmt.Sprintf("The `%s` scalar type represents %s.", structName, structName),
-		Serialize: func(value interface{}) interface{} {
-			if v, ok := value.(*T); ok {
-				if v == nil {
-					return nil
-				}
-				return *v
-			}
-			return value
-		},
-		ParseValue: func(value interface{}) interface{} {
-			deserializeFn := func(data []byte) (response T) {
-				_ = json.Unmarshal(data, &response)
-				return
-			}
-			switch value := value.(type) {
-			case []byte:
-				return deserializeFn(value)
-			case string:
-				return deserializeFn([]byte(value))
-			case *string:
-				if value == nil {
-					return nil
-				}
-				return deserializeFn([]byte(*value))
-			default:
-				return nil
-			}
-		},
-		ParseLiteral: func(valueAST ast.Value) interface{} {
-			switch valueAST := valueAST.(type) {
-			case *ast.ObjectValue:
-				return valueAST.GetValue()
+	fieldArgs := graphql.FieldConfigArgument{}
+	structSchema := FetchFilledSchema(jsonschema.Reflect(t))
+	buildGraphqlFieldType(structSchema, 0, func(depth int, title string, fields graphql.Fields) graphql.Type {
+		if depth == 1 {
+			for k, v := range fields {
+				fieldArgs[k] = &graphql.ArgumentConfig{Type: v.Type}
 			}
 			return nil
-		},
+		}
+		return graphql.NewInputObject(graphql.InputObjectConfig{Name: title, Fields: fields})
 	})
+	return fieldArgs
+}
+
+func BuildGraphqlOutput[T any]() graphql.Output {
+	var t T
+	structSchema := FetchFilledSchema(jsonschema.Reflect(t))
+	return buildGraphqlFieldType(structSchema, 0, func(_ int, title string, fields graphql.Fields) graphql.Type {
+		return graphql.NewObject(graphql.ObjectConfig{Name: title, Fields: fields})
+	})
+}
+
+func buildGraphqlFieldType(schema *openapi3.SchemaRef, depth int, buildObjTypeFunc func(int, string, graphql.Fields) graphql.Type) graphql.Type {
+	depth++
+	schemaValue := schema.Value
+	switch schemaValue.Type {
+	case openapi3.TypeArray:
+		return graphql.NewList(buildGraphqlFieldType(schemaValue.Items, depth, buildObjTypeFunc))
+	case openapi3.TypeObject:
+		objFields := graphql.Fields{}
+		for k, v := range schemaValue.Properties {
+			itemType := buildGraphqlFieldType(v, depth, buildObjTypeFunc)
+			if slices.Contains(schemaValue.Required, k) {
+				itemType = graphql.NewNonNull(itemType)
+			}
+			objFields[k] = &graphql.Field{Type: itemType}
+		}
+		return buildObjTypeFunc(depth, schemaValue.Title, objFields)
+	case openapi3.TypeNumber:
+		return graphql.Float
+	case openapi3.TypeInteger:
+		return graphql.Int
+	case openapi3.TypeBoolean:
+		return graphql.Boolean
+	default:
+		return graphql.String
+	}
 }
