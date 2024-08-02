@@ -20,11 +20,36 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"sync"
+	"time"
 )
+
+var waitInternalUntilReadyOnce sync.Once
+
+func waitInternalUntilReady() {
+	rootPath := fetchInternalRequestUrl("/")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
+	defer cancel()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			if _, err := http.Get(rootPath); err != nil {
+				time.Sleep(time.Millisecond * 50)
+				continue
+			}
+			return
+		}
+	}
+}
 
 func internalRequest[I any](client *types.InternalClient, path string, options types.OperationArgsWithInput[I]) (resp *http.Response, err error) {
 	if client == nil {
 		client = defaultInternalClient
+	}
+	if client.ClientRequest.RequestURI == "" {
+		waitInternalUntilReadyOnce.Do(waitInternalUntilReady)
 	}
 	var (
 		bodyBuffer  *bytes.Buffer
