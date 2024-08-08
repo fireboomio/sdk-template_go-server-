@@ -139,11 +139,14 @@ func RegisterGraphql(schema *graphql.Schema) {
 		})))
 
 		e.POST(routeUrl, func(c echo.Context) error {
-			var body graphqlBody
-			if err := c.Bind(&body); err != nil {
+			bodyBytes, err := io.ReadAll(c.Request().Body)
+			if err != nil {
 				return buildEchoGraphqlError(c, err)
 			}
-
+			var body graphqlBody
+			if err = json.Unmarshal(bodyBytes, &body); err != nil {
+				return buildEchoGraphqlError(c, err)
+			}
 			brc := c.(*types.BaseRequestContext)
 			grc := &GraphqlRequestContext{
 				Context:        c.Request().Context(),
