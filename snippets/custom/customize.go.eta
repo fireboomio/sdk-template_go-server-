@@ -17,35 +17,20 @@ var <%= it.name %>_testPeopleData = []<%= it.upperFirst(it.name) %>_Person{
 	{Id: 1, FirstName: "John", LastName: "Doe"},
 	{Id: 2, FirstName: "Jane", LastName: "Doe"},
 }
-var <%= it.name %>_personType = graphql.NewObject(graphql.ObjectConfig{
-	Name: "<%= it.upperFirst(it.name) %>_Person",
-	Fields: graphql.Fields{
-		"id":        &graphql.Field{Type: graphql.Int},
-		"firstName": &graphql.Field{Type: graphql.String},
-		"lastName":  &graphql.Field{Type: graphql.String},
-	},
-})
 
 var (
 	<%= it.name %>_queryFields = graphql.Fields{
 		"GetOnePerson": &graphql.Field{
-			Type: <%= it.name %>_personType,
-			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
-					Type: graphql.Int,
-				},
-			},
+            Type: plugins.BuildGraphqlOutput[<%= it.upperFirst(it.name) %>_Person](),
+			Args: plugins.BuildGraphqlInput[<%= it.upperFirst(it.name) %>_Person](),
 			Resolve: func(params graphql.ResolveParams) (res interface{}, err error) {
-				_, _, err = plugins.ResolveArgs[any](params)
+				_, input, err := plugins.ResolveArgs[<%= it.upperFirst(it.name) %>_Person](params)
 				if err != nil {
 					return
 				}
-				id, ok := params.Args["id"].(int)
-				if ok {
-					for _, p := range <%= it.name %>_testPeopleData {
-						if p.Id == id {
-							return p, nil
-						}
+				for _, p := range <%= it.name %>_testPeopleData {
+					if p.Id == input.Id {
+						return p, nil
 					}
 				}
 				return "ok", nil
@@ -55,7 +40,7 @@ var (
 
 	<%= it.name %>_mutationFields = graphql.Fields{
 		"UpdateOnePerson": &graphql.Field{
-			Type: <%= it.name %>_personType,
+            Type: plugins.BuildGraphqlOutput[<%= it.upperFirst(it.name) %>_Person](),
 			Args: graphql.FieldConfigArgument{
 				"id": &graphql.ArgumentConfig{
 					Type: graphql.Int,
@@ -68,22 +53,15 @@ var (
 				},
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				_ = plugins.GetGraphqlContext(params)
-				id, ok := params.Args["id"].(int)
-				if ok {
-					for _, p := range <%= it.name %>_testPeopleData {
-						if p.Id == id {
-							firstName, ok := params.Args["firstName"].(string)
-							if ok {
-								p.FirstName = firstName
-							}
-
-							lastName, ok := params.Args["lastName"].(string)
-							if ok {
-								p.LastName = lastName
-							}
-							return p, nil
-						}
+                _, input, err := plugins.ResolveArgs[<%= it.upperFirst(it.name) %>_Person](params)
+                if err != nil {
+                    return nil, err
+                }
+				for _, p := range <%= it.name %>_testPeopleData {
+					if p.Id == input.Id {
+                        p.FirstName = input.FirstName
+                        p.LastName = input.LastName
+						return p, nil
 					}
 				}
 				return nil, nil
@@ -94,7 +72,7 @@ var (
 
 	<%= it.name %>_subscriptionFields = graphql.Fields{
 		"SubscriptionPerson": &graphql.Field{
-			Type: <%= it.name %>_personType,
+            Type: plugins.BuildGraphqlOutput[<%= it.upperFirst(it.name) %>_Person](),
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 				return params.Source, nil
 			},
