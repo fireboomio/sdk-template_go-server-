@@ -168,15 +168,22 @@ func (v *zeroValues) search(data []byte, dataType jsonparser.ValueType, path ...
 		}
 	case jsonparser.Object:
 		_ = jsonparser.ObjectEach(data, func(key []byte, value []byte, dataType jsonparser.ValueType, _ int) error {
-			v.search(value, dataType, append(path, string(key))...)
+			v.search(value, dataType, appendItem(path, string(key))...)
 			return nil
 		})
 	case jsonparser.Array:
 		var index int
 		_, _ = jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, _ int, _ error) {
-			v.search(value, dataType, append(path, fmt.Sprintf("[%d]", index))...)
+			v.search(value, dataType, appendItem(path, fmt.Sprintf("[%d]", index))...)
 			index++
 		})
 	}
 	return
+}
+
+func appendItem(array []string, item string) []string {
+	result := make([]string, len(array)+1)
+	copy(result, array)
+	result[len(array)] = item
+	return result
 }
