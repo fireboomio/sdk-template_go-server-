@@ -3,6 +3,7 @@ package plugins
 import (
 	"bytes"
 	"custom-go/pkg/types"
+	"custom-go/pkg/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
@@ -97,7 +98,7 @@ func (u *UploadClient) Upload(parameter *UploadParameter) (uploadResp types.Uplo
 		req.Header.Add(string(types.InternalHeader_X_Upload_Profile), string(parameter.Profile))
 	}
 	if parameter.Metadata != nil {
-		metadataBytes, _ := json.Marshal(parameter.Metadata)
+		metadataBytes, _ := utils.MarshalWithoutEscapeHTML(parameter.Metadata)
 		req.Header.Add(string(types.InternalHeader_X_Metadata), string(metadataBytes))
 	}
 	for k, v := range parameter.Headers {

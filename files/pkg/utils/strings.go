@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/json"
 	"github.com/tidwall/gjson"
 	"golang.org/x/exp/slices"
 	"path/filepath"
@@ -59,4 +61,12 @@ func ReplacePlaceholder(jsonStr, str string) string {
 
 		return s
 	})
+}
+
+func MarshalWithoutEscapeHTML(obj any) ([]byte, error) {
+	buffer := &bytes.Buffer{}
+	jsonEncoder := json.NewEncoder(buffer)
+	jsonEncoder.SetEscapeHTML(false)
+	err := jsonEncoder.Encode(obj)
+	return buffer.Bytes(), err
 }

@@ -67,12 +67,12 @@ func internalRequest[I any](client *types.InternalClient, path string, options t
 	formData, ok := options.Context.Value(fileFormDataKey).(fileFormData)
 	if ok {
 		optional := func(writer *multipart.Writer) {
-			inputBytes, _ := json.Marshal(options.Input)
+			inputBytes, _ := utils.MarshalWithoutEscapeHTML(options.Input)
 			for _, key := range maps.Keys(formData) {
 				inputBytes, _ = sjson.DeleteBytes(inputBytes, key)
 			}
 			_ = writer.WriteField("input", string(inputBytes))
-			baseBodyWgBytes, _ := json.Marshal(baseBodyWg)
+			baseBodyWgBytes, _ := utils.MarshalWithoutEscapeHTML(baseBodyWg)
 			_ = writer.WriteField("__wg", string(baseBodyWgBytes))
 		}
 		if bodyBuffer, contentType, err = buildBodyWithFileFormData(formData, optional); err != nil {
@@ -80,7 +80,7 @@ func internalRequest[I any](client *types.InternalClient, path string, options t
 		}
 	} else {
 		var jsonData []byte
-		if jsonData, err = json.Marshal(types.OperationHookPayload{Input: options.Input, Wg: baseBodyWg}); err != nil {
+		if jsonData, err = utils.MarshalWithoutEscapeHTML(types.OperationHookPayload{Input: options.Input, Wg: baseBodyWg}); err != nil {
 			return
 		}
 		bodyBuffer, contentType = bytes.NewBuffer(utils.ClearZeroTime(jsonData)), echo.MIMEApplicationJSON

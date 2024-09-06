@@ -112,7 +112,7 @@ func buildOperationHook[I, O any](operationPath string, hook types.MiddlewareHoo
 			return c.JSON(http.StatusOK, in)
 		}
 
-		outBytes, err := json.Marshal(out)
+		outBytes, err := utils.MarshalWithoutEscapeHTML(out)
 		if err != nil {
 			return err
 		}

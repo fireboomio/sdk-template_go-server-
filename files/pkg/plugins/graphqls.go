@@ -5,6 +5,7 @@ import (
 	"context"
 	"custom-go/pkg/embeds"
 	"custom-go/pkg/types"
+	"custom-go/pkg/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -195,7 +196,7 @@ func RegisterGraphql(schema *graphql.Schema) {
 			VariableValues: introspectBody.Variables,
 			Context:        context.Background(),
 		})
-		graphqlResultBytes, err := json.Marshal(graphqlResult)
+		graphqlResultBytes, err := utils.MarshalWithoutEscapeHTML(graphqlResult)
 		if err != nil {
 			e.Logger.Errorf("json marshal graphqlResult failed, err: %v", err.Error())
 			return
@@ -253,7 +254,7 @@ func handleSSEForNormalizeSubscription(c *types.BaseRequestContext, resultChan c
 				return result.Errors[0]
 			}
 
-			dataBytes, err := json.Marshal(result.Data)
+			dataBytes, err := utils.MarshalWithoutEscapeHTML(result.Data)
 			if err != nil {
 				fmt.Println("JSON 序列化失败：", err)
 				close(resultChan)
@@ -476,7 +477,7 @@ func ResolveArgs[T any](params graphql.ResolveParams) (grc *GraphqlRequestContex
 }
 
 func ResolveParamsToStruct(params graphql.ResolveParams, input any) error {
-	argsBytes, err := json.Marshal(params.Args)
+	argsBytes, err := utils.MarshalWithoutEscapeHTML(params.Args)
 	if err != nil {
 		return err
 	}

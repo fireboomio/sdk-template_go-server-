@@ -899,7 +899,7 @@ const (
 	HookParent_global         HookParent = "global"
 	HookParent_operation      HookParent = "operation"
 	HookParent_proxy          HookParent = "proxy"
-	HookParent_storage        HookParent = "storage"
+	HookParent_upload         HookParent = "upload"
 )
 
 type InjectVariableKind int64

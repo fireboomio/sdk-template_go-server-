@@ -3,7 +3,6 @@ package plugins
 import (
 	"custom-go/pkg/types"
 	"custom-go/pkg/utils"
-	"encoding/json"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/invopop/jsonschema"
 	"github.com/labstack/echo/v4"
@@ -57,7 +56,7 @@ func RegisterFunction[I, O any](hookFunc func(*types.HookRequest, *types.Operati
 		operation.VariablesSchema = BuildSchema(inputSchema)
 		operation.ResponseSchema = BuildSchema(outputSchema)
 
-		operationBytes, err := json.Marshal(operation)
+		operationBytes, err := utils.MarshalWithoutEscapeHTML(operation)
 		if err != nil {
 			e.Logger.Errorf("json marshal failed, err: %v", err.Error())
 			return
@@ -90,7 +89,7 @@ func BuildSchema(schema *jsonschema.Schema) (schemaStr string) {
 		schemaRef = parseJsonschemaToSwaggerSchema(schema)
 	}
 
-	bytes, _ := json.Marshal(schemaRef)
+	bytes, _ := utils.MarshalWithoutEscapeHTML(schemaRef)
 	schemaStr = string(bytes)
 	if len(defs) > 0 {
 		schemaStr, _ = sjson.Set(schemaStr, definitionRefProperty, defs)
