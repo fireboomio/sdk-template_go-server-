@@ -3,6 +3,7 @@ package plugins
 import (
 	"custom-go/pkg/types"
 	"custom-go/pkg/utils"
+	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"os"
@@ -38,7 +39,7 @@ func RegisterProxyHook(hookFunc httpProxyHookFunction, operationType ...types.Op
 			operation.OperationType = operationType[0]
 		}
 
-		operationBytes, err := utils.MarshalWithoutEscapeHTML(operation)
+		operationBytes, err := json.Marshal(operation)
 		if err != nil {
 			e.Logger.Errorf("json marshal failed, err: %v", err.Error())
 			return

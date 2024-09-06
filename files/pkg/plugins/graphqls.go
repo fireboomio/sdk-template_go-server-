@@ -196,7 +196,7 @@ func RegisterGraphql(schema *graphql.Schema) {
 			VariableValues: introspectBody.Variables,
 			Context:        context.Background(),
 		})
-		graphqlResultBytes, err := utils.MarshalWithoutEscapeHTML(graphqlResult)
+		graphqlResultBytes, err := json.Marshal(graphqlResult)
 		if err != nil {
 			e.Logger.Errorf("json marshal graphqlResult failed, err: %v", err.Error())
 			return
