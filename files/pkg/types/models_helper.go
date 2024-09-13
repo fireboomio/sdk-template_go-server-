@@ -44,7 +44,7 @@ func (g *Geometry) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + g.String() + `"`), nil
 }
 func (g *Geometry) UnmarshalJSON(dataBytes []byte) error {
-	if len(dataBytes) == 0 {
+	if len(dataBytes) == 0 || string(dataBytes) == "null" {
 		return nil
 	}
 	dataString := strings.Trim(string(dataBytes), `""`)
