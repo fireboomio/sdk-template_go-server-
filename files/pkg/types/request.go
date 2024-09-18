@@ -58,16 +58,22 @@ type (
 )
 
 type (
-	registeredHook func(echo.Logger)
-	healthFunc     func(*echo.Echo, *HealthReportLock)
-	routerFunc     func(e *echo.Echo)
+	registeredHook           func(echo.Logger)
+	registeredHookWithClient func(echo.Logger, *InternalClient)
+	healthFunc               func(*echo.Echo, *HealthReportLock)
+	routerFunc               func(e *echo.Echo)
 )
 
 var (
-	registeredHookArr []registeredHook
-	healthFuncArr     []healthFunc
-	routerFuncArr     []routerFunc
+	registeredHookArr           []registeredHook
+	registeredHookWithClientArr []registeredHookWithClient
+	healthFuncArr               []healthFunc
+	routerFuncArr               []routerFunc
 )
+
+func GetRegisteredHookWithClientArr() []registeredHookWithClient {
+	return registeredHookWithClientArr
+}
 
 func GetRegisteredHookArr() []registeredHook {
 	return registeredHookArr
@@ -79,6 +85,10 @@ func GetHealthFuncArr() []healthFunc {
 
 func GetEchoRouterFuncArr() []routerFunc {
 	return routerFuncArr
+}
+
+func AddRegisteredHookWithClient(hook registeredHookWithClient) {
+	registeredHookWithClientArr = append(registeredHookWithClientArr, hook)
 }
 
 func AddRegisteredHook(hook registeredHook) {

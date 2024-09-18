@@ -56,6 +56,12 @@ func configureWunderGraphServer() *echo.Echo {
 				for _, registeredHook := range types.GetRegisteredHookArr() {
 					go registeredHook(e.Logger)
 				}
+				if registeredHooks := types.GetRegisteredHookWithClientArr(); len(registeredHooks) > 0 {
+					client := types.NewEmptyInternalClient()
+					for _, registeredHook := range registeredHooks {
+						go registeredHook(e.Logger, client)
+					}
+				}
 			})
 			if c.Request().Method == http.MethodGet {
 				return next(c)
