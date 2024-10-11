@@ -253,8 +253,7 @@ func ExecuteWithTransaction(client *types.InternalClient, execute func() error) 
 	if client.ExtraHeaders.Get(string(types.TransactionHeader_X_Transaction_Id)) == "" {
 		transactionId := uuid.New().String()
 		client.WithHeaders(types.RequestHeaders{
-			string(types.TransactionHeader_X_Transaction_Manually): "true",
-			string(types.TransactionHeader_X_Transaction_Id):       transactionId,
+			string(types.TransactionHeader_X_Transaction_Id): transactionId,
 		})
 	} else {
 		client.WithHeaders(types.RequestHeaders{
