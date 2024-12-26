@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"bytes"
+	"context"
 	"custom-go/pkg/base"
 	"custom-go/pkg/consts"
 	"custom-go/pkg/embeds"
@@ -12,6 +13,7 @@ import (
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"golang.org/x/exp/slices"
 	"io"
 	"math"
 	"net/http"
@@ -165,24 +167,43 @@ func RegisterGraphql(schema *graphql.Schema) {
 			e.Logger.Errorf("get embed introspect.json failed, err: %v", err.Error())
 			return
 		}
-		headers := map[string]string{echo.HeaderContentType: echo.MIMEApplicationJSON}
-		respBody, err := utils.HttpPost(consts.HTTP_PREFIX+address+routeUrl, introspectBytes, headers, 5)
-		if err != nil {
-			e.Logger.Errorf("post req failed, uri: %s, err: %v", routeUrl, err.Error())
+		var introspectBody graphqlBody
+		if err = json.Unmarshal(introspectBytes, &introspectBody); err != nil {
+			e.Logger.Errorf("json unmarshal introspectBytes failed, err: %v", err.Error())
 			return
 		}
-
-		if errorMsg := gjson.GetBytes(respBody, graphqlResultErrorsPath); errorMsg.Exists() {
+		graphqlResult := graphql.Do(graphql.Params{
+			Schema:         *schema,
+			OperationName:  introspectBody.OperationName,
+			RequestString:  introspectBody.Query,
+			VariableValues: introspectBody.Variables,
+			Context:        context.Background(),
+		})
+		graphqlResultBytes, err := json.Marshal(graphqlResult)
+		if err != nil {
+			e.Logger.Errorf("json marshal graphqlResult failed, err: %v", err.Error())
+			return
+		}
+		if errorMsg := gjson.GetBytes(graphqlResultBytes, graphqlResultErrorsPath); errorMsg.Exists() {
 			e.Logger.Error(errorMsg.String())
 			return
 		}
-		res := gjson.GetBytes(respBody, graphqlResultDataPath).String()
 
-		// 写入文件--eg. custom-go/customize/test.go  --> custom-go/customize/test.json
-		err = os.WriteFile(filepath.Join(consts.CUSTOMIZE, callerName)+consts.JSON_EXT, []byte(res), 0644)
-		if err != nil {
-			e.Logger.Errorf("write file failed, err: %v", err.Error())
-			return
+		graphqlData := gjson.GetBytes(graphqlResultBytes, graphqlResultDataPath).String()
+		writeFileRequired := true
+		jsonFilepath := filepath.Join("customize", callerName) + ".json"
+		if jsonBytes, _ := os.ReadFile(jsonFilepath); len(jsonBytes) > 0 {
+			graphqlBytes := []byte(graphqlData)
+			slices.Sort(graphqlBytes)
+			slices.Sort(jsonBytes)
+			writeFileRequired = !slices.Equal(graphqlBytes, jsonBytes)
+		}
+		if writeFileRequired {
+			// 写入文件--eg. custom-go/customize/test.go  --> custom-go/customize/test.json
+			if err = os.WriteFile(jsonFilepath, []byte(graphqlData), 0644); err != nil {
+				e.Logger.Errorf("write file failed, err: %v", err.Error())
+				return
+			}
 		}
 
 		report.Lock()
